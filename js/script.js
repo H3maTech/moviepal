@@ -2,6 +2,38 @@ const global = {
     currentPage: window.location.pathname,
 }
 
+async function displayPopularMovies() {
+    const { results } = await fetchAPIData('movie/popular');
+
+    results.forEach(movie => {
+        const div = document.createElement('div');
+        div.classList.add('card');
+        div.innerHTML = `
+        <a href="movie-details.html?id=${movie.id}">
+           ${
+            movie.poster_path ?
+            `<img
+            src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
+            class="card-img-top"
+            alt="${movie.title}"/>` :
+            `<img
+            src="images/no-image.jpg"
+            class="card-img-top"
+            alt="${movie.title}"/>`
+           }
+        </a>
+        <div class="card-body">
+            <h5 class="card-title">${movie.title}</h5>
+            <p class="card-text">
+                <small class="text-muted">Release: ${movie.release_date}</small>
+            </p>
+        </div>
+        `;
+
+        document.querySelector('#popular-movies').appendChild(div)
+    })
+}
+
 async function fetchAPIData(endpoint) {
     // I know if it's a production application I probably shouldn't do this, what I most likely do I would have my backend server that I make the request to, and that's where I store this key so that other people couldn't get it, and then make my request to movie DB from the server
     const API_KEY = '0e5203973a9ff55d0009613f8b0ed9a1';
