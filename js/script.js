@@ -2,67 +2,41 @@ const global = {
     currentPage: window.location.pathname,
 }
 
-async function displayPopularMovies() {
-    const { results } = await fetchAPIData('movie/popular');
+async function displayPopular(endpoint) {
+    const { results } = await fetchAPIData(endpoint);
+    const targetMedia = endpoint.toLowerCase().includes('tv');
 
-    results.forEach(movie => {
+    results.forEach(media => {
+        const title = targetMedia
+        ? media.name
+        : media.title;
+
+        const release = targetMedia
+        ? media.first_air_date
+        : media.release_date;
+
+        const imgSrc = media.poster_path
+        ? `https://image.tmdb.org/t/p/w500${media.poster_path}`
+        : `images/no-image.jpg`
+
         const div = document.createElement('div');
         div.classList.add('card');
         div.innerHTML = `
-        <a href="movie-details.html?id=${movie.id}">
-           ${
-            movie.poster_path ?
-            `<img
-            src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
+        <a href="movie-details.html?id=${media.id}">
+            <img
+            src="${imgSrc}"
             class="card-img-top"
-            alt="${movie.title}"/>` :
-            `<img
-            src="images/no-image.jpg"
-            class="card-img-top"
-            alt="${movie.title}"/>`
-           }
+            alt="${title}"/>
         </a>
         <div class="card-body">
-            <h5 class="card-title">${movie.title}</h5>
+            <h5 class="card-title">${title}</h5>
             <p class="card-text">
-                <small class="text-muted">Release: ${movie.release_date}</small>
+                <small class="text-muted">Release: ${release}</small>
             </p>
         </div>
         `;
 
-        document.querySelector('#popular-movies').appendChild(div)
-    })
-}
-
-async function displayPopularShows() {
-    const { results } = await fetchAPIData('tv/popular');
-
-    results.forEach(show => {
-        const div = document.createElement('div');
-        div.classList.add('card');
-        div.innerHTML = `
-        <a href="movie-details.html?id=${show.id}">
-           ${
-            show.poster_path ?
-            `<img
-            src="https://image.tmdb.org/t/p/w500${show.poster_path}"
-            class="card-img-top"
-            alt="${show.name}"/>` :
-            `<img
-            src="images/no-image.jpg"
-            class="card-img-top"
-            alt="${show.name}"/>`
-           }
-        </a>
-        <div class="card-body">
-            <h5 class="card-title">${show.name}</h5>
-            <p class="card-text">
-                <small class="text-muted">Release: ${show.first_air_date}</small>
-            </p>
-        </div>
-        `;
-
-        document.querySelector('#popular-shows').appendChild(div)
+        document.querySelector(`#popular-${targetMedia ? 'shows' : 'movies'}`).appendChild(div)
     })
 }
 
@@ -101,10 +75,10 @@ function init() {
     switch (global.currentPage) {
         case '/':
         case '/index.html':
-            displayPopularMovies();
+            displayPopular('movie/popular');
         break;
         case '/shows.html':
-            displayPopularShows();
+            displayPopular('tv/popular');
         break;
         case '/movie-details.html':
             console.log('Movie Details');
