@@ -22,7 +22,7 @@ async function displayPopular(endpoint = 'movie/popular') {
         const div = document.createElement('div');
         div.classList.add('card');
         div.innerHTML = `
-        <a href="movie-details.html?id=${media.id}">
+        <a href="${targetMedia ? 'tv' : 'movie'}-details.html?id=${media.id}">
             <img
             src="${imgSrc}"
             class="card-img-top"
@@ -108,11 +108,7 @@ function displayBackgroundImage(type, backgroundPath) {
     overlayDiv.style.zIndex = '-1';
     overlayDiv.style.opacity = '0.1';
 
-    if (type === 'movie') {
-        document.querySelector('#movie-details').appendChild(overlayDiv)
-    } else {
-        document.querySelector('#show-details').appendChild(overlayDiv)
-    }
+    document.querySelector(`#${type === 'movie' ? 'movie' : 'show'}-details`).appendChild(overlayDiv)
 }
 
 async function fetchAPIData(endpoint) {
