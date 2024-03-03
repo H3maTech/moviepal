@@ -2,7 +2,7 @@ const global = {
     currentPage: window.location.pathname,
 }
 
-async function displayPopular(endpoint) {
+async function displayPopular(endpoint = 'movie/popular') {
     const { results } = await fetchAPIData(endpoint);
     const targetMedia = endpoint.toLowerCase().includes('tv');
 
@@ -31,7 +31,7 @@ async function displayPopular(endpoint) {
         <div class="card-body">
             <h5 class="card-title">${title}</h5>
             <p class="card-text">
-                <small class="text-muted">Release: ${release}</small>
+                <small class="text-muted">Release: ${release || 'Unknown'}</small>
             </p>
         </div>
         `;
@@ -40,12 +40,56 @@ async function displayPopular(endpoint) {
     })
 }
 
-function showSpinner() {
-    document.querySelector('.spinner').classList.add('show');
-}
+async function displayMovieDetails() {
+    const movieId = window.location.search.split('=')[1];
+    const movie = await fetchAPIData(`movie/${movieId}`);
+    const div = document.createElement('div');
+    console.log(movie);
 
-function hideSpinner() {
-    document.querySelector('.spinner').classList.remove('show');
+    const imgSrc = movie.poster_path
+    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    : `images/no-image.jpg`
+
+    div.innerHTML = `
+    <div class="details-top">
+    <div>
+      <img
+        src="${imgSrc}"
+        class="card-img-top"
+        alt="${movie.title}"
+      />
+    </div>
+    <div>
+      <h2>${movie.title}</h2>
+      <p>
+        <i class="fas fa-star text-primary"></i>
+        ${movie.vote_average.toFixed(1)}
+      </p>
+      <p class="text-muted">Release Date: ${movie.release_date}</p>
+      <p>
+        ${movie.overview}
+      </p>
+      <h5>Genres</h5>
+      <ul class="list-group">
+        ${movie.genres.map((genre) => `<li>${genre.name}</li>`).join('')}
+      </ul>
+      <a href="${movie.homepage}" target="_blank" class="btn">Visit Movie Homepage</a>
+    </div>
+  </div>
+  <div class="details-bottom">
+    <h2>Movie Info</h2>
+    <ul>
+      <li><span class="text-secondary">Budget:</span> $${addCommasToNumber(movie.budget)}</li>
+      <li><span class="text-secondary">Revenue:</span> $${addCommasToNumber(movie.revenue)}</li>
+      <li><span class="text-secondary">Runtime:</span> ${movie.runtime} minutes</li>
+      <li><span class="text-secondary">Status:</span> ${movie.status}</li>
+    </ul>
+    <h4>Production Companies</h4>
+    <div class="list-group">${movie.production_companies.map(company => ` ${company.name}`)}</div>
+  </div>
+    `;
+
+    document.querySelector('#movie-details').appendChild(div);
 }
 
 async function fetchAPIData(endpoint) {
@@ -71,6 +115,18 @@ function highlightActiveLink() {
     });
 }
 
+function showSpinner() {
+    document.querySelector('.spinner').classList.add('show');
+}
+
+function hideSpinner() {
+    document.querySelector('.spinner').classList.remove('show');
+}
+
+function addCommasToNumber(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function init() {
     switch (global.currentPage) {
         case '/':
@@ -81,7 +137,7 @@ function init() {
             displayPopular('tv/popular');
         break;
         case '/movie-details.html':
-            console.log('Movie Details');
+            displayMovieDetails();
         break;
         case '/search.html':
             console.log('Search');
