@@ -94,6 +94,61 @@ async function displayMovieDetails() {
     document.querySelector('#movie-details').appendChild(div);
 }
 
+async function displayShowDetails() {
+    const showId = window.location.search.split('=')[1];
+    const show = await fetchAPIData(`tv/${showId}`);
+    const div = document.createElement('div');
+
+    console.log(show);
+
+    // Overlay for background image
+    displayBackgroundImage('tv', show.backdrop_path);
+
+    const imgSrc = show.poster_path
+    ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+    : `images/no-image.jpg`
+
+    div.innerHTML = `
+    <div class="details-top">
+    <div>
+      <img
+        src="${imgSrc}"
+        class="card-img-top"
+        alt="${show.name}"
+      />
+    </div>
+    <div>
+      <h2>${show.name}</h2>
+      <p>
+        <i class="fas fa-star text-primary"></i>
+        ${show.vote_average.toFixed(1)}
+      </p>
+      <p class="text-muted">Release Date: ${show.release_date}</p>
+      <p>
+        ${show.overview}
+      </p>
+      <h5>Genres</h5>
+      <ul class="list-group">
+        ${show.genres.map((genre) => `<li>${genre.name}</li>`).join('')}
+      </ul>
+      <a href="${show.homepage}" target="_blank" class="btn">Visit Movie Homepage</a>
+    </div>
+  </div>
+  <div class="details-bottom">
+    <h2>Show Info</h2>
+    <ul>
+      <li><span class="text-secondary">Number Of Episodes:</span> ${show.number_of_episodes}</li>
+      <li><span class="text-secondary">Last Episode To Air:</span> ${show.last_episode_to_air.name} minutes</li>
+      <li><span class="text-secondary">Status:</span> ${show.status}</li>
+    </ul>
+    <h4>Production Companies</h4>
+    <div class="list-group">${show.production_companies.map(company => ` ${company.name}`)}</div>
+  </div>
+    `;
+
+    document.querySelector('#show-details').appendChild(div);
+}
+
 function displayBackgroundImage(type, backgroundPath) {
     const overlayDiv = document.createElement('div');
     overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${backgroundPath})`;
@@ -162,7 +217,7 @@ function init() {
             console.log('Search');
         break;
         case '/tv-details.html':
-            console.log('TV Details');
+            displayShowDetails();
         break;
     }
 
