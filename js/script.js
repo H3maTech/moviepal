@@ -206,7 +206,10 @@ async function search() {
 
 function displaySearchResults(results) {
   const type = !global.search.type;
-  console.log(type);
+  // TODO:
+  document.querySelector('#search-results').innerHTML = '';
+  document.querySelector('#search-results-heading').innerHTML = '';
+  document.querySelector('#pagination').innerHTML = '';
 
   results.forEach(media => {
   const title = type
@@ -244,6 +247,7 @@ function displaySearchResults(results) {
     document.querySelector(`#search-results`).appendChild(div)
   })
 
+  window.scrollTo(0, 0)
   displayPagination();
 }
 
@@ -261,6 +265,18 @@ function displayPagination() {
   global.search.page === 1 && (document.querySelector('#prev').disabled = true)
 
   global.search.page === global.search.totalPages && (document.querySelector('#next').disabled = true)
+
+  document.querySelector('#next').addEventListener('click', async () => {
+    global.search.page++;
+    const { results, total_pages } = await searchAPIData();
+    displaySearchResults(results)
+  })
+
+  document.querySelector('#prev').addEventListener('click', async () => {
+    global.search.page--;
+    const { results, total_pages } = await searchAPIData();
+    displaySearchResults(results)
+  })
 }
 
 async function displaySlider() {
@@ -324,7 +340,7 @@ async function fetchAPIData(endpoint) {
 async function searchAPIData() {
   showSpinner()
 
-  const response = await fetch(`${global.api.apiUrl}search/${global.search.type}?api_key=${global.api.apiKey}&language=en-US&query=${global.search.term}`);
+  const response = await fetch(`${global.api.apiUrl}search/${global.search.type}?api_key=${global.api.apiKey}&language=en-US&query=${global.search.term}&page=${global.search.page}`);
 
   hideSpinner()
 
