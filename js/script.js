@@ -257,6 +257,10 @@ function displayPagination() {
   `
 
   document.querySelector('#pagination').appendChild(div);
+
+  global.search.page === 1 && (document.querySelector('#prev').disabled = true)
+
+  global.search.page === global.search.totalPages && (document.querySelector('#next').disabled = true)
 }
 
 async function displaySlider() {
