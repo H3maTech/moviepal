@@ -1,5 +1,15 @@
 const global = {
     currentPage: window.location.pathname,
+    search: {
+      term: '',
+      type: '',
+      page: 1,
+      totalPages: 1,
+    },
+    api: {
+      apiKey: '0e5203973a9ff55d0009613f8b0ed9a1',
+      apiUrl: 'https://api.themoviedb.org/3/',
+    }
 }
 
 async function displayPopular(endpoint = 'movie/popular') {
@@ -166,10 +176,69 @@ function displayBackgroundImage(type, backgroundPath) {
     document.querySelector(`#${type === 'movie' ? 'movie' : 'show'}-details`).appendChild(overlayDiv)
 }
 
+async function search() {
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  global.search.type = urlParams.get('type');
+  global.search.term = urlParams.get('search-term');
+
+  if (global.search.term !== '' && global.search.term !== null) {
+    // TODO: make request and display result
+    const results = await searchAPIData();
+    console.log(results);
+  } else {
+    showAlert('Please enter a search term');
+  }
+}
+
+async function displaySlider() {
+  const { results } = await fetchAPIData('movie/now_playing');
+  results.forEach(movie => {
+    const div = document.createElement('div');
+    div.classList.add('swiper-slide');
+    div.innerHTML = `
+      <a href="movie-details.html?id=${movie.id}">
+        <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}" />
+      </a>
+      <h4 class="swiper-rating">
+        <i class="fas fa-star text-secondary"></i> ${movie.vote_average.toFixed(1)} / 10
+      </h4>
+    `
+
+    document.querySelector('.swiper-wrapper').appendChild(div);
+
+    initSwiper();
+  })
+}
+
+function initSwiper() {
+  const swiper = new Swiper('.swiper', {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    freeMode: true,
+    loop: true,
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false
+    },
+    breakpoints: {
+      500: {
+        slidesPerView: 2
+      },
+      700: {
+        slidesPerView: 3
+      },
+      1200: {
+        slidesPerView: 4
+      },
+    }
+  })
+}
+
 async function fetchAPIData(endpoint) {
     // I know if it's a production application I probably shouldn't do this, what I most likely do I would have my backend server that I make the request to, and that's where I store this key so that other people couldn't get it, and then make my request to movie DB from the server
-    const API_KEY = '0e5203973a9ff55d0009613f8b0ed9a1';
-    const API_URL = 'https://api.themoviedb.org/3/';
+    const API_KEY = global.api.apiKey;
+    const API_URL = global.api.apiUrl;
 
     showSpinner()
 
@@ -179,6 +248,17 @@ async function fetchAPIData(endpoint) {
 
     return await response.json();
 }
+
+async function searchAPIData() {
+  showSpinner()
+
+  const response = await fetch(`${global.api.apiUrl}search/${global.search.type}?api_key=${global.api.apiKey}&language=en-US&query=${global.search.term}`);
+
+  hideSpinner()
+
+  return await response.json();
+}
+
 
 function highlightActiveLink() {
     const links = document.querySelectorAll('.nav-link')
@@ -197,6 +277,17 @@ function hideSpinner() {
     document.querySelector('.spinner').classList.remove('show');
 }
 
+function showAlert(message, className) {
+  const alertEl = document.createElement('div');
+  alertEl.classList.add('alert', className);
+  alertEl.appendChild(document.createTextNode(message));
+  document.querySelector('#alert').appendChild(alertEl);
+
+  setTimeout(() => {
+    alertEl.remove();
+  }, 3000);
+}
+
 function addCommasToNumber(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
@@ -205,6 +296,7 @@ function init() {
     switch (global.currentPage) {
         case '/':
         case '/index.html':
+            displaySlider();
             displayPopular('movie/popular');
         break;
         case '/shows.html':
@@ -214,7 +306,7 @@ function init() {
             displayMovieDetails();
         break;
         case '/search.html':
-            console.log('Search');
+            search();
         break;
         case '/tv-details.html':
             displayShowDetails();
