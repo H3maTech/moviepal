@@ -184,11 +184,56 @@ async function search() {
 
   if (global.search.term !== '' && global.search.term !== null) {
     // TODO: make request and display result
-    const results = await searchAPIData();
-    console.log(results);
+    const { results, total_pages, page } = await searchAPIData();
+    if (results.length === 0) {
+      showAlert('No results found', 'success');
+      return;
+    }
+
+    displaySearchResults(results);
+    document.querySelector('#search-term').value = '';
+
   } else {
     showAlert('Please enter a search term');
   }
+}
+
+function displaySearchResults(results) {
+  const type = !global.search.type;
+  console.log(type);
+
+  results.forEach(media => {
+  const title = type
+    ? media.name
+    : media.title;
+
+    const release = type
+    ? media.first_air_date
+    : media.release_date;
+
+    const imgSrc = media.poster_path
+    ? `https://image.tmdb.org/t/p/w500${media.poster_path}`
+    : `images/no-image.jpg`
+
+    const div = document.createElement('div');
+    div.classList.add('card');
+    div.innerHTML = `
+    <a href="${type ? 'tv' : 'movie'}-details.html?id=${media.id}">
+        <img
+        src="${imgSrc}"
+        class="card-img-top"
+        alt="${title}"/>
+    </a>
+    <div class="card-body">
+        <h5 class="card-title">${title}</h5>
+        <p class="card-text">
+            <small class="text-muted">Release: ${release || 'Unknown'}</small>
+        </p>
+    </div>
+    `;
+
+    document.querySelector(`#search-results`).appendChild(div)
+})
 }
 
 async function displaySlider() {
@@ -277,7 +322,7 @@ function hideSpinner() {
     document.querySelector('.spinner').classList.remove('show');
 }
 
-function showAlert(message, className) {
+function showAlert(message, className = 'error') {
   const alertEl = document.createElement('div');
   alertEl.classList.add('alert', className);
   alertEl.appendChild(document.createTextNode(message));
