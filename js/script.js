@@ -242,7 +242,21 @@ function displaySearchResults(results) {
       <h2>${results.length} of ${global.search.totalResults} Results for ${global.search.term}</h2>
     `
     document.querySelector(`#search-results`).appendChild(div)
-})
+  })
+
+  displayPagination();
+}
+
+function displayPagination() {
+  const div = document.createElement('div');
+  div.classList.add('pagination');
+  div.innerHTML = `
+    <button class="btn btn-primary" id="prev">Prev</button>
+    <button class="btn btn-primary" id="next">Next</button>
+    <div class="page-counter">Page ${global.search.page} of ${global.search.totalPages}</div>
+  `
+
+  document.querySelector('#pagination').appendChild(div);
 }
 
 async function displaySlider() {
